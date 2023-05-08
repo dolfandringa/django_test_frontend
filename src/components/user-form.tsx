@@ -1,24 +1,27 @@
 import React, { useState, ChangeEvent } from "react";
-import { Form, InputOnChangeData } from "semantic-ui-react";
+import { Form, Message, InputOnChangeData } from "semantic-ui-react";
 
 interface FormProps {
   onChange: (email: string, password: string) => void;
+  error?: string;
 }
 
 export const UserForm = (props: FormProps) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  let error = false;
+  if (props.error) {
+    error = true;
+  }
 
   const handleChange = (
-    _: ChangeEvent<HTMLInputElement>,
+    event: ChangeEvent<HTMLInputElement>,
     data: InputOnChangeData
   ) => {
-    console.log("Changing data", data);
-    if (data.email) {
-      setEmail(email);
-    }
-    if (data.password) {
-      setPassword(password);
+    if (data.name == "email") {
+      setEmail(data.value);
+    } else if (data.name == "password") {
+      setPassword(data.value);
     }
   };
 
@@ -26,15 +29,21 @@ export const UserForm = (props: FormProps) => {
     props.onChange(email, password);
   };
   return (
-    <Form onSubmit={handleSubmit}>
+    <Form error={error} onSubmit={handleSubmit}>
       <Form.Input
+        name="email"
         onChange={handleChange}
         icon="at"
         label="Email"
         placeholder="test@test.com"
       />
-
-      <Form.Input onChange={handleChange} label="Password" type="password" />
+      <Message error>{props.error}</Message>
+      <Form.Input
+        name="password"
+        onChange={handleChange}
+        label="Password"
+        type="password"
+      />
       <Form.Button>Submit</Form.Button>
     </Form>
   );

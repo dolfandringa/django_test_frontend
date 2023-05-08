@@ -1,28 +1,43 @@
 import React, { createContext, ReactNode, useState } from "react";
-import { Button } from "semantic-ui-react";
+import { Button, Message } from "semantic-ui-react";
 import { getCookie, setCookie } from "typescript-cookie";
 import { UserForm } from "../components/user-form";
+import { PermissionDeniedError } from "../../exceptions";
+import axios from "axios";
 
 interface IContext {
-  user?: string | undefined;
+  loggedIn: boolean;
   logout?: () => Promise<void>;
 }
 
-export const AuthContext = createContext<IContext>({});
+export const AuthContext = createContext<IContext>({ loggedIn: false });
 
 export const AuthProvider = (props: { children?: ReactNode }) => {
-  const [user, setUser] = useState<string | undefined>();
+  const [loggedIn, setLoggedIn] = useState<boolean>(false);
+  const [error, setError] = useState<string|undefined>();
 
-  const onLogin = (username: string, password: string) => {
-    setUser(username);
+  const onLogin = async (email: string, password: string) => {
+    try {
+      const form = new FormData();
+      form.append("email", email);
+      form.append("password", password);
+      await axios.post("http://127.0.0.1:8000/login/", form);
+      setLoggedIn(true);
+      setError(undefined);
+    } catch(error) {
+      console.error("Login failed", error);
+      setLoggedIn(false);
+      setError("Login failed.")
+    }
   };
 
   const logout = async () => {
+    setLoggedIn(false);
   };
 
   return (
-    <AuthContext.Provider value={{ user, logout }}>
-      {user ? (
+    <AuthContext.Provider value={{ loggedIn, logout }}>
+      {loggedIn ? (
         <>
           <Button as="a" onClick={logout}>
             logout
@@ -30,7 +45,7 @@ export const AuthProvider = (props: { children?: ReactNode }) => {
           {props.children}
         </>
       ) : (
-        <UserForm onChange={onLogin} />
+        <UserForm error={error} onChange={onLogin} />
       )}
     </AuthContext.Provider>
   );
