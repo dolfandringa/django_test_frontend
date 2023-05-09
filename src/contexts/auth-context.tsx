@@ -1,6 +1,6 @@
 import React, { createContext, ReactNode, useState } from "react";
 import { Button } from "semantic-ui-react";
-import { getCookie, setCookie } from "typescript-cookie";
+import { getCookie } from "typescript-cookie";
 import { UserForm } from "../components/user-form";
 import axios, { AxiosResponse } from "axios";
 
@@ -38,10 +38,13 @@ export const AuthProvider = (props: { children?: ReactNode }) => {
   const [error, setError] = useState<string | undefined>();
 
   const onLogin = async (email: string, password: string) => {
+    const csrftoken = getCookie("csrftoken");
     try {
-      const form = {data: { type: "login", attributes: { email, password }}};
+      const form = { data: { type: "login", attributes: { email, password } } };
       await axios.post("http://127.0.0.1:8000/login/", form, {
+        withCredentials: true,
         headers: {
+          "X-CSRFToken": csrftoken,
           "Content-Type": "application/vnd.api+json",
         },
       });
