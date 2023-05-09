@@ -39,10 +39,12 @@ export const AuthProvider = (props: { children?: ReactNode }) => {
 
   const onLogin = async (email: string, password: string) => {
     try {
-      const form = new FormData();
-      form.append("email", email);
-      form.append("password", password);
-      await axios.post("http://127.0.0.1:8000/login/", form);
+      const form = {data: { type: "login", attributes: { email, password }}};
+      await axios.post("http://127.0.0.1:8000/login/", form, {
+        headers: {
+          "Content-Type": "application/vnd.api+json",
+        },
+      });
       setLoggedIn(true);
       setError(undefined);
       const resp: AxiosResponse<Profile> = await axios.get(
@@ -53,9 +55,7 @@ export const AuthProvider = (props: { children?: ReactNode }) => {
         ...resp.data.data.attributes,
         id: resp.data.data.id,
       };
-      console.log("Profile", resp);
       setUser(user);
-      console.log("Set user to", user);
     } catch (error) {
       console.error("Login failed", error);
       setLoggedIn(false);
